@@ -1,0 +1,15 @@
+{
+    "schemaVersion": "1.0",
+    "artifacts": {
+        "Transformer": {
+            "version": "0.1.0",
+            "type": "executable",
+            "variants": [
+                {
+                    "path": "macos/Transformer",
+                    "supportedTriples": ["x86_64-apple-macosx", "arm64-apple-macosx"]
+                }
+            ]
+        }
+    }
+}
