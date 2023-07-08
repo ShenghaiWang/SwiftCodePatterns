@@ -1,7 +1,7 @@
 #  Swift Code Patterns
 
 While appreciating the power of Swift macros to help redue boilerplate code, 
-we find it not straightforward(or not even possible due to its design goal limitation).
+we find it not straightforward(or not even possible due to its design goal limitation) in some cases.
 This package is to try bridge this gap to allow us to generate pattern code using templates based on some other piece of code.
 It is very practical for cases like generating:
 
@@ -24,13 +24,16 @@ Integrate Build Tool Plugin into target build phase after happy with the result.
 In this mode, the generated code will be included into project automatically.
 More info about SPM plugins can be found [here](https://developer.apple.com/videos/play/wwdc2022/110359/).
 
-## Configuration Template
+## Configuration
 
 One sample configuration file `AutoCodePatterns.yml` is included in this package, 
 which provids rules to generate code for new defined `EnvironmentKey`, `UITraitDefinition`, `ViewModifer`.
 It also has two methods for generating code for `Equatable`, `Hashable` conformance to a class type.
 Please tailer the template to suit the project needs and put this configureation file at the root folder of the project
 (Please keep the file name unchanged).
+
+Currently, it supports two types of transformation. One is with `template` and another using `Swift` code. 
+Please check the example below for details.
 
 ## Example
 
@@ -53,13 +56,13 @@ rules:
       - EnvironmentKey # only the type that inherits this type will be eligible for this rule
   imports: # the frameworks that need to be imported in the file
     - SwiftUI
-# The transform if the rule applies, the code quoted by `#` will be expanded.
-# If the code inside two # need to expand again, quote it using two `|`, in this case, #name# becomes |name|
+# The transform if the rule applies. The code quoted by `#` will be expanded.
+# If the code inside two # need to expand again, quote it using two `|`. In this case, #name# becomes |name|
 # In total, we have 3 types of expansion so far: name, type, properties.
 # Name expansion will be based on the type name
 # Type expansion will be based on the data type name
 # Properties expansion will be based on the properties defined in the type.
-# Properties expansion is different from name and type expansion as it could be a loop in cased of more than 1 properties in the type.
+# Properties expansion is different from name and type expansion as it could be a loop in cased of more than 1 properties defined in the type.
 # Both name and type expansion can have transformers followed.
 # All the transformers are separated using `*` and they will be applied into name and type in order.
 # And they all have a straightforward name to reason about their functionality.
@@ -72,18 +75,38 @@ rules:
 # in this case the name inside this property expansion was quoted using `|`.
 # Can also do the same for type here if you need type in the destination code.
 # Can even following the transformers like |name.upperInital| or |type.lowerInitial| etc. Combine them in a sensible way to get the code looks right.
-  transform: >
+#  transform: >
+#    extension EnvironmentValues {
+#        var #name*lowerInitial#: String {
+#            get { self[#name#.self] }
+#            set { self[#name#.self] = newValue }
+#        }
+#
+#        var #name*lowerInitial*removeSuffix(Key)*addSuffix(Value)#: String {
+#            get { self[#name#.self] }
+#            set { self[#name#.self] = newValue }
+#        }
+#    }
+# If feeling swifty, choose code transform instead. The codeTransform below is identical to the transform above.
+# Even though it looks wordy for this case, this approach might be useful for some cases where need more flexibilities of transforming code.
+# The `name` is a `String` type and `properties` is an array of tuple type of `(name: String, type: String)`
+# The code write can directly access to these two values
+  codeTransform: | # Write swift code as usual and assign the final result to `generatedCode` variable in `String` format
+    let name1 = name.prefix(1).lowercased() + name.dropFirst()
+    let name2 = (name.prefix(1).lowercased() + name.dropFirst()).replacingOccurrences(of: "Key", with: "Value")
+    generatedCode =
+    """
     extension EnvironmentValues {
-        var #name*lowerInitial#: String {
-            get { self[#name#.self] }
-            set { self[#name#.self] = newValue }
+        var \(name1): String {
+            get { self[\(name).self] }
+            set { self[\(name).self] = newValue }
         }
-
-        var #name*lowerInitial*removeSuffix(Key)*addSuffix(Value)#: String {
-            get { self[#name#.self] }
-            set { self[#name#.self] = newValue }
+        var \(name2): String {
+            get { self[\(name).self] }
+            set { self[\(name).self] = newValue }
         }
     }
+    """
 -
   rule: autoTraitDefinition
   selector:
@@ -96,7 +119,6 @@ rules:
     extension UITraitCollection {
         var #name*addPrefix(is)*removeSuffix(Trait)#: Bool { self[#name#.self] }
     }
-
 
     extension UIMutableTraits {
         var #name*addPrefix(is)*removeSuffix(Trait)#: Bool {
@@ -142,7 +164,6 @@ rules:
             #properties*joiner()<hasher.combine(|name|)>#
         }
     }
-
 ```
 
 ### Source Code
@@ -150,7 +171,7 @@ rules:
 ```swift
 import Foundation
 
-private struct MyEnvironmentKey: EnvironmentKey {
+struct MyEnvironmentKey: EnvironmentKey {
     static let defaultValue: String = "Default value"
 }
 

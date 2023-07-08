@@ -8,7 +8,7 @@ let generatedFileName = "AutoCodePatterns.Code.swift"
 struct CodePatternBuildTool: BuildToolPlugin {
     func createBuildCommands(context: PackagePlugin.PluginContext, target: PackagePlugin.Target) async throws -> [PackagePlugin.Command] {
         let configFile = context.package.directory.appending(configuraionFilename)
-        guard let sourceFiles = target.sourceModule?.sourceFiles else { return [] }
+        guard let sourceFiles = (target as? SourceModuleTarget)?.sourceFiles else { return [] }
         let command = try context.tool(named: "Transformer")
         return [createBuildCommand(for: command.path,
                                    with: configFile,

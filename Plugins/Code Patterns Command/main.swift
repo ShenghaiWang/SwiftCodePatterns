@@ -10,7 +10,7 @@ struct CodePatternCommand: CommandPlugin {
         let command = try context.tool(named: "Transformer")
         let configFile = context.package.directory.appending(configuraionFilename)
         try context.package.targets.forEach { target in
-            guard let sourceFiles = target.sourceModule?.sourceFiles else { return }
+            guard let sourceFiles = (target as? SourceModuleTarget)?.sourceFiles else { return }
             try run(command: command.path,
                     with: configFile,
                     for: sourceFiles,
@@ -26,7 +26,14 @@ extension CodePatternCommand: XcodeCommandPlugin {
     func performCommand(context: XcodePluginContext, arguments: [String]) throws {
         let command = try context.tool(named: "Transformer")
         let configFile = context.xcodeProject.directory.appending(configuraionFilename)
-        try context.xcodeProject.targets.forEach { target in
+        var argExtractor = ArgumentExtractor(arguments)
+        let targetNames = argExtractor.extractOption(named: "target")
+        let targets = targetNames.isEmpty
+        ? context.xcodeProject.targets
+        : context.xcodeProject.targets.filter { target in
+            targetNames.contains(target.displayName)
+        }
+        try targets.forEach { target in
             try run(command: command.path,
                     with: configFile,
                     for: target.inputFiles,

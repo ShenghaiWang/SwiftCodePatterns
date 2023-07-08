@@ -8,17 +8,17 @@ let package = Package(
         .macOS(.v13), .iOS(.v16), .tvOS(.v16), .watchOS(.v9)
     ],
     products: [
-        .plugin(name: "CodePatternCommand", targets: ["CodePatternCommand"]),
-        .plugin(name: "CodePatternBuildTool", targets: ["CodePatternBuildTool"]),
+        .plugin(name: "Code Patterns Command", targets: ["Code Patterns Command"]),
+        .plugin(name: "Code Patterns BuildTool", targets: ["Code Patterns BuildTool"]),
     ],
     targets: [
-        .plugin(name: "CodePatternCommand",
+        .plugin(name: "Code Patterns Command",
                 capability: .command(intent:
-                        .custom(verb: "Run CodePatterns",
-                                description: "Running CodePatterns will generate code based on the AutoCodePatterns.yml configuration")),
+                        .custom(verb: "Run Code Patterns",
+                                description: "Generate code based on the AutoCodePatterns.yml configuration")),
                 dependencies: ["Transformer"]
                ),
-        .plugin(name: "CodePatternBuildTool",
+        .plugin(name: "Code Patterns BuildTool",
                 capability: .buildTool(),
                 dependencies: ["Transformer"]),
         .binaryTarget(name: "Transformer", path: "./Transformer.artifactbundle")
