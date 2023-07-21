@@ -16,7 +16,7 @@ It is very practical for cases like generating:
     
 ## Usage
 
-The same functionality is make available in both SPM Command Plugin and SPM Build Tool Plugin. 
+The same functionality is made available via both SPM Command Plugin and SPM Build Tool Plugin. 
 Configure the rule and explore it first using SPM Command Plugin. 
 At the end of the output of this command, find the generated code file name and path. 
 Open it and confirm if the generated code is expected.
